@@ -52,6 +52,9 @@ The **Watsonx.data Document Library Retrieval MCP Server** is a Model Context Pr
     oc get configmap kube-root-ca.crt -o jsonpath='{.data.ca\.crt}' > cabundle.crt
     ```
 
+NOTE:
+Please use open shift login command. The user and password will be open shift portal login username and password 
+
 ---
 
 ## Setup
@@ -94,6 +97,9 @@ export CPD_PASSWORD="<cpd-password>"
 export CA_BUNDLE_PATH="<absolute_path_to_cabundle.crt>"
 export LH_CONTEXT="CPD"
 ```
+NOTE:
+* For CPD_ENDPOINT use endpoint url for installed CPD. Example: "https://cpd-cpd-instance.apps.perf10.5y2z.openshiftapps.com" 
+* For CPD_USERNAME and CPD_PASSWORD use the username and password used to login to CPD.
 
 ### For Watsonx SaaS:
 
@@ -104,6 +110,13 @@ export DOCUMENT_LIBRARY_API_ENDPOINT="<document-library-endpoint>"
 export WATSONX_DATA_TOKEN_GENERATION_ENDPOINT="<token-generation-endpoint>"
 export LH_CONTEXT="SAAS"
 ```
+NOTE: 
+* For DOCUMENT_LIBRARY_API_ENDPOINT please use the endpoint url corresponding to region from here: https://cloud.ibm.com/apidocs/data-ai-common-core#endpoint-url.
+Example: https://api.ca-tor.dai.cloud.ibm.com 
+* For WATSONX_DATA_RETRIEVAL_ENDPOINT please use the watsonx.data endpoint.
+Example : https://console-ibm-cator.lakehouse.saas.ibm.com 
+* For WATSONX_DATA_TOKEN_GENERATION_ENDPOINT please use the endpoint url from here: https://cloud.ibm.com/apidocs/iam-identity-token-api#endpoints .
+Example: https://iam.cloud.ibm.com 
 
 ---
 
@@ -129,45 +142,39 @@ uv run ibm-watsonxdata-dl-retrieval-mcp-server --port <desired_port> --transport
 
 ---
 
-## Integrating with Agentic Frameworks
+## Integrating with WXO  
 
-This server supports standard MCP adapters, compatible with most modern agentic frameworks. These adapters expose tools via:
+Prerequisite:  
 
-- HTTP endpoints (e.g., `http://localhost:8000/sse`)
-- OR through `stdio`.
+1. Install WXO ADK and complete the initial setup. Refer documentation for more details: https://developer.watson-orchestrate.ibm.com 
+2. Install mcp-proxy 
+```bash   
+pip install mcp-proxy  
+``` 
 
-### Example (Python + LlamaStack)
-
-```python
-from llama_stack.distribution.library_client import LlamaStackAsLibraryClient
-from llama_stack_client.types.toolgroup_register_params import McpEndpoint
-
-client = LlamaStackAsLibraryClient("your-inference-provider")
-client.initialize()
-
-client.toolgroups.register(
-    toolgroup_id="mcp::your_toolgroup",
-    provider_id="model-context-protocol",
-    mcp_endpoint=McpEndpoint(uri="http://localhost:8000/sse"),
-)
-```
-
-Once registered, tools can be used as part of an agent definition:
-
-```python
-from llama_stack_client import Agent
-
-agent = Agent(
-    client,
-    model="your-model",
-    instructions="...",
-    tools=["mcp::your_toolgroup"],
-)
-```
-
-📚 [LlamaStack Docs – Model Context Protocol](https://llama-stack.readthedocs.io/en/latest/building_applications/tools.html#model-context-protocol-mcp)
+3. Run ibm-watsonxdata-dl-retrieval-mcp-server in sse transport.
+ 
+Once prerequisites are met, the tools can be added as toolkit in WXO. Refer documentation for more details: https://developer.watson-orchestrate.ibm.com/tools/toolkits 
+ 
+Example : 
+```bash  
+orchestrate toolkits import \ 
+  --kind mcp \ 
+  --name mcp_toolkit \ 
+  --description "MCP server (hosted, SSE)" \ 
+  --package "mcp-proxy" \ 
+  --language python \ 
+  --command "uvx mcp-proxy https://<mcp server endpoint>/sse" \ 
+  --tools "*" 
+``` 
+NOTE:  
+When running wxo in SAAS and MCP server locally, expose the mcp server endpoint if required.
 
 ---
+
+## Integrating with other Agentic Frameworks
+For more examples on using Watsonx.data Document Library Retrieval MCP Server with agentic framework refer `examples` session here: https://github.com/IBM/ibm-watsonxdata-dl-retrieval-mcp-server
+
 
 ## Limitations
 
