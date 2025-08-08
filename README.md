@@ -52,8 +52,7 @@ The **Watsonx.data Document Library Retrieval MCP Server** is a Model Context Pr
     oc get configmap kube-root-ca.crt -o jsonpath='{.data.ca\.crt}' > cabundle.crt
     ```
 
-NOTE:
-Please use open shift login command. The user and password will be open shift portal login username and password 
+NOTE: Please use open shift login command. The user and password will be open shift portal login username and password 
 
 ---
 
@@ -83,6 +82,12 @@ pip install uv
 ```
 
 - `uv` package: [https://pypi.org/project/uv/](https://pypi.org/project/uv/)
+
+### Step 5: Install the MCP server package
+
+```bash
+pip install ibm-watsonxdata-dl-retrieval-mcp-server
+```
 
 ---
 
@@ -142,19 +147,49 @@ uv run ibm-watsonxdata-dl-retrieval-mcp-server --port <desired_port> --transport
 
 ---
 
-## Integrating with WXO  
+## Integrating with WXO 
 
 Prerequisite:  
 
-1. Install WXO ADK and complete the initial setup. Refer documentation for more details: https://developer.watson-orchestrate.ibm.com 
-2. Install mcp-proxy 
+Install WXO ADK and complete the initial setup. Refer documentation for more details: https://developer.watson-orchestrate.ibm.com 
+
+### Transport: STDIO
+
+To add the MCP server in stdio transport with WXO refer the example below.
+
+1. create connection
+```bash 
+orchestrate connections add -a <app id>
+``` 
+2. Configure connection
+```bash 
+orchestrate connections configure --app-id <app id> --environment draft -t team -k key_value
+```
+3. Setting credentials
+```bash 
+orchestrate connections set-credentials --app-id=<app id> --env draft -e WATSONX_DATA_API_KEY="<api_key>" -e WATSONX_DATA_RETRIEVAL_ENDPOINT="<wxd retrieval endpoint>" -e DOCUMENT_LIBRARY_API_ENDPOINT="<DL endpoint>" -e WATSONX_DATA_TOKEN_GENERATION_ENDPOINT="<token generation endpoint>" -e LH_CONTEXT="SAAS"
+```
+Example for Saas: 
+```bash  
+orchestrate toolkits import \
+    --kind mcp \
+    --name "mcp-toolkit" \
+    --description "mcp server for watsonx retrival service" \
+    --package "ibm-watsonxdata-dl-retrieval-mcp-server" \
+    --command "uv run ibm-watsonxdata-dl-retrieval-mcp-server --port <port> --transport stdio" \
+    --language python \
+    --tools "*" \
+    --app-id <app id>
+```
+
+### Transport: SSE
+1. Install mcp-proxy 
 ```bash   
 pip install mcp-proxy  
 ``` 
-
-3. Run ibm-watsonxdata-dl-retrieval-mcp-server in sse transport.
+2. Run ibm-watsonxdata-dl-retrieval-mcp-server in sse transport.
  
-Once prerequisites are met, the tools can be added as toolkit in WXO. Refer documentation for more details: https://developer.watson-orchestrate.ibm.com/tools/toolkits 
+Once prerequisites are met, the tools can be added as toolkit in WXO.
  
 Example : 
 ```bash  
@@ -170,11 +205,12 @@ orchestrate toolkits import \
 NOTE:  
 When running wxo in SAAS and MCP server locally, expose the mcp server endpoint if required.
 
+Refer wxo documentation for more details: https://www.ibm.com/docs/en/watsonx/watson-orchestrate/base?topic=tools-importing-from-mcp-server
+
 ---
 
 ## Integrating with other Agentic Frameworks
-For more examples on using Watsonx.data Document Library Retrieval MCP Server with agentic framework refer `examples` session here: https://github.com/IBM/ibm-watsonxdata-dl-retrieval-mcp-server
-
+For more examples on using Watsonx.data Document Library Retrieval MCP Server with agentic framework refer `examples`
 
 ## Limitations
 
