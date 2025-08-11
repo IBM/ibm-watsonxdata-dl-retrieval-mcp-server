@@ -4,7 +4,6 @@ import os
 import anyio
 import click
 import mcp.types as types
-from mcp.server.lowlevel import Server 
 from .document_library_api import get_document_library_list
 from .retrival_service_api import watsonx_data_query_handler
 from fastmcp.server.server import FastMCP
@@ -101,13 +100,9 @@ def run_mcp_server(port: int, transport: str):
             logger.info("\nServer stopped by user.")
 
     elif transport == "stdio":
-        from mcp.server.stdio import stdio_server
-        
-        logger.info("Starting MCP server with stdio transport...")
+        logger.info("Starting MCP server with stdio transport")
         async def arun():
-            async with stdio_server() as streams:
-                await app.run_async("stdio")
-        
+            await app.run_async("stdio") 
         try:
             anyio.run(arun)
         except KeyboardInterrupt:
@@ -115,4 +110,3 @@ def run_mcp_server(port: int, transport: str):
     else:
         logger.critical(f"Unknown transport: {transport}")
         sys.exit(1)
-
